@@ -8,7 +8,8 @@ from tkinter import messagebox
 import pyautogui
 
 
-# Mapping store names with uppercase keys for case-insensitive matching
+
+
 store_name_mapping = {
     ") Budh Vihar - N": 'Budh Vihar',
     'BUDH VIHAR-II-N': 'Budh Vihar-II',
@@ -22,7 +23,7 @@ store_name_mapping = {
     'Rama Vihar - N': 'Rama Vihar',
 }
 
-# Define custom Total Counter values for each store
+
 total_counter_mapping = {
     'Budh Vihar': 32,
     'Budh Vihar-II': 32,
@@ -39,10 +40,7 @@ total_counter_mapping = {
 
 
 def replace_store_name(store_name):
-    # store_name = re.sub(r'\s*-\s*N$', '', store_name, flags=re.IGNORECASE).strip()  # Remove '- N'
-    # store_name = re.sub(r'\s*\(\d+\)$', '', store_name).strip()  # Remove numbers in parentheses
-    # normalized = store_name.upper()
-    # print(store_name)
+   
     for key in store_name_mapping:
         if key in store_name:
             # print(store_name_mapping[key])
@@ -57,8 +55,8 @@ def replace_store_name(store_name):
 def extract_data_from_image(image_path):
     image = Image.open(image_path)
     text = pytesseract.image_to_string(image)
-    text = re.sub(r'\s+', ' ', text).strip()  # Removes extra spaces & newlines
-    text = text.replace(" -N", "-N")  # Fix spacing inconsistencies
+    text = re.sub(r'\s+', ' ', text).strip()  
+    text = text.replace(" -N", "-N")  
 
     # print("Extracted Text:", text)
     store_pattern = r'([A-Za-z\s\-()]+)\s+Today Billing : (\d+)\s+Rej-%\s*:?(\d+\.\d+)\s+Count:?\s*(\d+)'
@@ -71,7 +69,7 @@ def extract_data_from_image(image_path):
         store_name = replace_store_name(match[0].strip())
         billing = int(match[1].replace(',', ''))
         rej_percent = float(match[2])
-        count = int(match[3]) if match[3] else 0  # Handle missing count
+        count = int(match[3]) if match[3] else 0  
         rej_amount = (billing * rej_percent) / 100
 
         data.append({
@@ -109,7 +107,7 @@ def open_file():
         df_agg['Rejection Percentage'] = (df_agg['Rejection Amount'] / df_agg['Billing Amount'] * 100).round(2)
 
         # Add "Total Counter" column using the predefined mapping
-        df_agg['Total Counter'] = df_agg['Store'].map(total_counter_mapping).fillna(0).astype(int)  # Default to 0 if not found
+        df_agg['Total Counter'] = df_agg['Store'].map(total_counter_mapping).fillna(0).astype(int) 
 
         # Calculate totals
         total_billing = df_agg['Billing Amount'].sum()
@@ -147,19 +145,19 @@ def save_csv(df):
 
 def save_snapshot():
     try:
-        # Ask user where to save the image
+       
         file_path = filedialog.asksaveasfilename(defaultextension=".png", filetypes=[("PNG Files", "*.png")])
         if not file_path:
             return
         
-        # Get coordinates of the frame_table inside the Tkinter window
+        
         root.update()
         x = frame_table.winfo_rootx()
         y = frame_table.winfo_rooty()
         width = frame_table.winfo_width()
         height = frame_table.winfo_height()
 
-        # Take screenshot of the table area
+       
         screenshot = pyautogui.screenshot(region=(x, y, width, height))
         screenshot.save(file_path)
       
@@ -171,14 +169,14 @@ def show_table(df):
     for widget in frame_table.winfo_children():
         widget.destroy()
 
-    # Updated columns to include "Total Counter" but exclude "Rejection Amount"
+  
     columns = ['Store', 'Billing Amount', 'Rejection Percentage', 'Count', 'Total Counter']
     
-    # Headers
+   
     for col_idx, col in enumerate(columns):
         tk.Label(frame_table, text=col, relief='solid', width=18, bg='yellow', font='bold').grid(row=0, column=col_idx)
 
-    # Rows
+   
     for row_idx, row in df.iterrows():
         is_last_row = row_idx == len(df) - 1  # Check if it's the last row
         font_style = ("Arial", 10) if is_last_row else ("Arial",10)
@@ -199,5 +197,8 @@ btn_upload.pack(pady=20)
 
 frame_table = tk.Frame(root)
 frame_table.pack(pady=10)
+btn_snapshot = tk.Button(root, text="Save Snapshot", command=save_snapshot)
+btn_snapshot.pack(pady=10)
+
 
 root.mainloop()
